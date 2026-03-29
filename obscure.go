@@ -1,3 +1,4 @@
+// Package obscure is used wrap a reader with an obscuring layer, using a cipher that is generated using a user-specified key.
 package obscure
 
 import (
@@ -10,11 +11,17 @@ import (
 	"unicode/utf8"
 )
 
+// Encoder wraps an io.Reader and will replace letters and numbers using a
+// simple cipher.
 type Encoder struct {
 	m map[rune]rune
 	r io.Reader
 }
 
+// NewEncoder generates a new cipher using the given key, and wraps the Reader
+// so it can be encoded.
+//
+// The decode flag, when set to true, will reverse the encoding.
 func NewEncoder(key []byte, f io.Reader, decode bool) *Encoder {
 	m := newCipherMap(key, decode)
 
