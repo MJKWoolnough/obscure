@@ -1,8 +1,8 @@
 # obscure
 
-[![CI](https://github.com/MJKWoolnough/obscure/actions/workflows/go-checks.yml/badge.svg)](https://github.com/MJKWoolnough/byteio/actions)
-[![Go Reference](https://pkg.go.dev/badge/vimagination.zapto.org/obscure.svg)](https://pkg.go.dev/vimagination.zapto.org/byteio)
-[![Go Report Card](https://goreportcard.com/badge/vimagination.zapto.org/obscure)](https://goreportcard.com/report/vimagination.zapto.org/byteio)
+[![CI](https://github.com/MJKWoolnough/obscure/actions/workflows/go-checks.yml/badge.svg)](https://github.com/MJKWoolnough/obscure/actions)
+[![Go Reference](https://pkg.go.dev/badge/vimagination.zapto.org/obscure.svg)](https://pkg.go.dev/vimagination.zapto.org/obscure)
+[![Go Report Card](https://goreportcard.com/badge/vimagination.zapto.org/obscure)](https://goreportcard.com/report/vimagination.zapto.org/obscure)
 
 --
     import "vimagination.zapto.org/obscure"
