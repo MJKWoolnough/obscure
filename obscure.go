@@ -2,6 +2,7 @@
 package obscure
 
 import (
+	"bufio"
 	"crypto/md5"
 	"encoding/binary"
 	"io"
@@ -14,8 +15,9 @@ import (
 // Encoder wraps an io.Reader and will replace letters and numbers using a
 // simple cipher.
 type Encoder struct {
-	m map[rune]rune
-	r io.Reader
+	m    map[rune]rune
+	r    *bufio.Reader
+	skip int
 }
 
 // NewEncoder generates a new cipher using the given key, and wraps the Reader
@@ -25,7 +27,7 @@ type Encoder struct {
 func NewEncoder(key []byte, f io.Reader, decode bool) *Encoder {
 	m := newCipherMap(key, decode)
 
-	return &Encoder{m: m, r: f}
+	return &Encoder{m: m, r: bufio.NewReader(f)}
 }
 
 func newCipherMap(key []byte, flip bool) map[rune]rune {
@@ -96,18 +98,28 @@ func shuffle[T any](r *rand.Rand, s []T) []T {
 }
 
 func (e *Encoder) Read(p []byte) (int, error) {
-	m, err := e.r.Read(p)
+	var buf [4]byte
 
 	q := p
 
 	for len(q) > 0 {
-		r, s := utf8.DecodeRune(q)
-		if c, ok := e.m[r]; ok {
-			utf8.EncodeRune(q[:s], c)
+		r, s, err := e.r.ReadRune()
+		if err != nil {
+			return len(p) - len(q), err
 		}
 
-		q = q[s:]
+		if c, ok := e.m[r]; ok {
+			r = c
+		}
+
+		n := copy(q, buf[e.skip:utf8.EncodeRune(buf[:], r)])
+		q = q[n:]
+		e.skip = (e.skip + n) % s
 	}
 
-	return m, err
+	if e.skip > 0 {
+		e.r.UnreadRune()
+	}
+
+	return len(p), nil
 }
