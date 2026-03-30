@@ -7,6 +7,14 @@ import (
 	"testing"
 )
 
+type reader struct {
+	io.Reader
+}
+
+type writer struct {
+	io.Writer
+}
+
 func TestEncoder(t *testing.T) {
 	for n, test := range [...]struct {
 		Key, Input, Output string
@@ -16,20 +24,24 @@ func TestEncoder(t *testing.T) {
 		{"ABC", "Lorem ipsum dolor sit amet consectetur adipiscing elit.\nDolor sit amet consectetur adipiscing elit quisque faucibus.", "Udpax efjnx ldwdp jeh sxah bdkjabhahnp slefejbekt aweh.\nMdwdp jeh sxah bdkjabhahnp slefejbekt aweh unejuna rsnbeqnj."},
 		{"KEY", "ÀΩБλж ६๔፩５Ⅴ½⑩", "ÂȀԺŗӥ ⅼ⁰⑵꣐⑱١៵"},
 	} {
-		var encoded, decoded bytes.Buffer
+		for m, bufSize := range [...]int{1, 2, 3, 100} {
+			var encoded, decoded bytes.Buffer
 
-		io.Copy(&encoded, NewEncoder([]byte(test.Key), strings.NewReader(test.Input), false))
+			buf := make([]byte, bufSize)
 
-		encodedStr := encoded.String()
+			io.CopyBuffer(writer{&encoded}, NewEncoder([]byte(test.Key), reader{strings.NewReader(test.Input)}, false), buf)
 
-		io.Copy(&decoded, NewEncoder([]byte(test.Key), &encoded, true))
+			encodedStr := encoded.String()
 
-		decodedStr := decoded.String()
+			io.CopyBuffer(writer{&decoded}, NewEncoder([]byte(test.Key), reader{&encoded}, true), buf)
 
-		if encodedStr != test.Output {
-			t.Errorf("test %d: expecting output %q, got %q", n+1, test.Output, encodedStr)
-		} else if decodedStr != test.Input {
-			t.Errorf("test %d: expecting output %q, got %q", n+1, test.Input, decodedStr)
+			decodedStr := decoded.String()
+
+			if encodedStr != test.Output {
+				t.Errorf("test %d.%d: expecting output %q, got %q", n+1, m+1, test.Output, encodedStr)
+			} else if decodedStr != test.Input {
+				t.Errorf("test %d.%d: expecting output %q, got %q", n+1, m+1, test.Input, decodedStr)
+			}
 		}
 	}
 }
